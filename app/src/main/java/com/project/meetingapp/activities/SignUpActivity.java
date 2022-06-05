@@ -221,6 +221,7 @@ public class SignUpActivity extends AppCompatActivity {
         FirebaseFirestore database    = FirebaseFirestore.getInstance();
         HashMap<String, Object> users = new HashMap<>();
         users.put(Constants.KEY_FULL_NAME,encryptedName );
+        users.put(Constants.KEY_PAIR_STATUS, false);
         users.put(Constants.KEY_MOBILE_NUM, encryptedPhoneNum);
         users.put(Constants.KEY_DATE_OF_BIRTH, date);
         users.put(Constants.KEY_SEX,radioButton.getText().toString());

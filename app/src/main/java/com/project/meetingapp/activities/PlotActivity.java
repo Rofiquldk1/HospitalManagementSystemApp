@@ -1,6 +1,38 @@
 package com.project.meetingapp.activities;
 
+import android.graphics.Color;
+import android.os.Bundle;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.utils.ColorTemplate;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.drawable.Drawable;
@@ -26,161 +58,265 @@ import com.project.meetingapp.R;
 import java.util.ArrayList;
 
 public class PlotActivity extends AppCompatActivity {
-    private LineChart mChart;
-    private static String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCgFGVfrY4jQSoZQWWygZ83roKXWD4YeT2x2p41dGkPixe73rT2IW04glagN2vgoZoHuOPqa5and6kAmK2ujmCHu6D1auJhE2tXP+yLkpSiYMQucDKmCsWMnW9XlC5K7OSL77TXXcfvTvyZcjObEz6LIBRzs6+FqpFbUO9SJEfh6wIDAQAB";
-    private static String privateKey = "MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKAUZV+tjiNBKhlBZbKBnzeugpdYPhh5PbHanjV0aQ+LF7vetPYhbTiCVqA3a+Chmge44+prlqd3qQCYra6OYIe7oPVq4mETa1c/7IuSlKJgxC5wMqYKxYydb1eULkrs5IvvtNddx+9O/JlyM5sTPosgFHOzr4WqkVtQ71IkR+HrAgMBAAECgYAkQLo8kteP0GAyXAcmCAkA2Tql/8wASuTX9ITD4lsws/VqDKO64hMUKyBnJGX/91kkypCDNF5oCsdxZSJgV8owViYWZPnbvEcNqLtqgs7nj1UHuX9S5yYIPGN/mHL6OJJ7sosOd6rqdpg6JRRkAKUV+tmN/7Gh0+GFXM+ug6mgwQJBAO9/+CWpCAVoGxCA+YsTMb82fTOmGYMkZOAfQsvIV2v6DC8eJrSa+c0yCOTa3tirlCkhBfB08f8U2iEPS+Gu3bECQQCrG7O0gYmFL2RX1O+37ovyyHTbst4s4xbLW4jLzbSoimL235lCdIC+fllEEP96wPAiqo6dzmdH8KsGmVozsVRbAkB0ME8AZjp/9Pt8TDXD5LHzo8mlruUdnCBcIo5TMoRG2+3hRe1dHPonNCjgbdZCoyqjsWOiPfnQ2Brigvs7J4xhAkBGRiZUKC92x7QKbqXVgN9xYuq7oIanIM0nz/wq190uq0dh5Qtow7hshC/dSK3kmIEHe8z++tpoLWvQVgM538apAkBoSNfaTkDZhFavuiVl6L8cWCoDcJBItip8wKQhXwHp0O3HLg10OEd14M58ooNfpgt+8D8/8/2OOFaR0HzA+2Dm";
+    //Initialize variable
+    BarChart barChart;
+    PieChart pieChart;
+    LineChart lineChart;
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plot);
-        mChart = findViewById(R.id.chart);
-        mChart.setTouchEnabled(true);
-        mChart.setPinchZoom(true);
-        MyMarkerView mv = new MyMarkerView(getApplicationContext(), R.layout.custom_marker_view);
-        mv.setChartView(mChart);
-        mChart.setMarker(mv);
-        renderData();
 
-
-        /*String encryptedString = null;
-        try {
-            encryptedString = Base64.encodeToString(RSAUtil.encrypt("Dhiraj is the author", publicKey)
-                    ,Base64.DEFAULT);
-        } catch (BadPaddingException e) {
-            e.printStackTrace();
-        } catch (IllegalBlockSizeException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        String decryptedString = RSAUtil.decrypt(encryptedString, privateKey);*/
+        //Assign variable
+        barChart = findViewById(R.id.bar_chart);
+        pieChart = findViewById(R.id.pie_chart);
+        lineChart = findViewById(R.id.line_chart);
 
 
 
-        /*RSAKeyPairGenerator keyPairGenerator = null;
-        try {
-            keyPairGenerator = new RSAKeyPairGenerator();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        assert keyPairGenerator != null;
+        //Draft
+        //connect to db
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        byte[] byteArray = new byte[0];
-        byte[] byteArray2 = new byte[0];
 
-        try {
-            byteArray = keyPairGenerator.getPublicKey().getEncoded().toString().getBytes("UTF-16");
-            byteArray2 = keyPairGenerator.
-                    getPrivateKey().getEncoded().toString().getBytes("UTF-16");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        //read data for LineCHart
+        db.collection("summary")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
 
-        String encodedString = Base64.encodeToString(byteArray,Base64.DEFAULT);
-        String encodedString2 = Base64.encodeToString(byteArray2,Base64.DEFAULT);*/
+                    private static final String TAG2 = "received data";
+                    ArrayList<Entry> entries = new ArrayList<>();
+                    float i = 1;
 
-        /*Log.d("pub",encodedString);
-        Log.d("pri",encodedString2);*/
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+
+                        if (task.isSuccessful()) {
+
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+
+                                String SV = document.get("patient_number").toString();
+                                Float SensorValue = Float.parseFloat(SV);
+                                entries.add(new Entry(i,SensorValue));
+                                i = i + 1;
+                            }
+                            ArrayList<ILineDataSet> dataSets = new ArrayList<>();
+                            List<String> xAxisValues = new ArrayList<>(Arrays.asList("January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "Decemeber"));
+//                            List<Entry> incomeEntries = getIncomeEntries();
+                            dataSets = new ArrayList<>();
+                            LineDataSet set1;
+
+                            set1 = new LineDataSet(entries, "Monthly patient overview");
+                            set1.setColor(Color.rgb(65, 168, 121));
+                            set1.setValueTextColor(Color.rgb(55, 70, 73));
+                            set1.setValueTextSize(10f);
+                            set1.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+                            dataSets.add(set1);
+
+                            //customization
+                            lineChart.setTouchEnabled(true);
+                            lineChart.setDragEnabled(true);
+                            lineChart.setScaleEnabled(false);
+                            lineChart.setPinchZoom(false);
+                            lineChart.setDrawGridBackground(false);
+                            lineChart.setExtraLeftOffset(15);
+                            lineChart.setExtraRightOffset(15);
+                            //to hide background lines
+                            lineChart.getXAxis().setDrawGridLines(true);
+                            lineChart.getAxisLeft().setDrawGridLines(true);
+                            lineChart.getAxisRight().setDrawGridLines(true);
+
+                            //to hide right Y and top X border
+                            YAxis rightYAxis = lineChart.getAxisRight();
+                            rightYAxis.setEnabled(true);
+                            YAxis leftYAxis = lineChart.getAxisLeft();
+                            leftYAxis.setEnabled(true);
+                            XAxis topXAxis = lineChart.getXAxis();
+                            topXAxis.setEnabled(false);
+
+
+                            XAxis xAxis = lineChart.getXAxis();
+                            xAxis.setGranularity(1f);
+                            xAxis.setCenterAxisLabels(true);
+                            xAxis.setEnabled(true);
+                            xAxis.setDrawGridLines(false);
+                            xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+                            xAxis.setLabelRotationAngle(-60f);
+
+                            set1.setLineWidth(4f);
+                            set1.setCircleRadius(3f);
+                            set1.setDrawValues(false);
+
+                            //String setter in x-Axis
+                            lineChart.getXAxis().setValueFormatter(new com.github.mikephil.charting.formatter.IndexAxisValueFormatter(xAxisValues));
+
+                            LineData data = new LineData(dataSets);
+                            lineChart.setData(data);
+                            lineChart.animateX(2000);
+                            lineChart.invalidate();
+                            lineChart.getLegend().setEnabled(false);
+                            lineChart.getDescription().setEnabled(true);
+//                            lineChart.setContentDescription("Monthly overview");
+
+                        } else {
+                            Log.w(TAG2, "Error getting documents.", task.getException());
+                        }
+                    }
+
+                });
+
+
+
+        //read data for barchart
+        db.collection("disease")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+
+                    private static final String TAG2 = "received data";
+                    ArrayList<BarEntry> barEntries = new ArrayList<>();
+                    List<String> disease_name = new ArrayList<>();
+                    float i = 1;
+
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+
+                        if (task.isSuccessful()) {
+
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+
+
+                                String SV1 = document.get("Disease").toString();
+                                disease_name.add(SV1);
+                                String SV = document.get("patient_number").toString();
+                                Float SensorValue = Float.parseFloat(SV);
+                                barEntries.add(new BarEntry(i,SensorValue));
+                                i = i + 1;
+
+                            }
+                            ArrayList<IBarDataSet> dataSets = new ArrayList<>();
+                            List<String> xAxisValues = disease_name;
+//                            List<Entry> incomeEntries = getIncomeEntries();
+                            dataSets = new ArrayList<>();
+                            BarDataSet set1;
+
+                            set1 = new BarDataSet(barEntries, "Patients");
+                            set1.setColors(ColorTemplate.COLORFUL_COLORS);
+//                            set1.setColor(Color.rgb(65, 168, 121));
+                            set1.setValueTextColor(Color.rgb(55, 70, 73));
+                            set1.setValueTextSize(10f);
+                            dataSets.add(set1);
+
+                            //customization
+//        LineChart lineChart = findByViewId(R.id.line_chart);
+                            barChart.setTouchEnabled(true);
+                            barChart.setDragEnabled(true);
+                            barChart.setScaleEnabled(false);
+                            barChart.setPinchZoom(false);
+                            barChart.setDrawGridBackground(false);
+                            barChart.setExtraLeftOffset(15);
+                            barChart.setExtraRightOffset(15);
+                            //to hide background lines
+                            barChart.getXAxis().setDrawGridLines(false);
+                            barChart.getAxisLeft().setDrawGridLines(true);
+                            barChart.getAxisRight().setDrawGridLines(false);
+
+                            //to hide right Y and top X border
+                            YAxis rightYAxis = barChart.getAxisRight();
+                            rightYAxis.setEnabled(false);
+                            YAxis leftYAxis = barChart.getAxisLeft();
+                            leftYAxis.setEnabled(true);
+                            XAxis topXAxis = barChart.getXAxis();
+                            topXAxis.setEnabled(false);
+
+
+                            XAxis xAxis = barChart.getXAxis();
+                            xAxis.setGranularity(1f);
+                            xAxis.setCenterAxisLabels(true);
+                            xAxis.setEnabled(true);
+                            xAxis.setDrawGridLines(false);
+                            xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+                            float val = -60;
+                            xAxis.setLabelRotationAngle(val);
+                            xAxis.setCenterAxisLabels(true);
+
+                    /*        set1.setLineWidth(4f);
+                            set1.setCircleRadius(3f);
+                            set1.setDrawValues(false);*/
+//        set1.setCircleHoleColor(getResources().getColor(R.color.bliue));
+//        set1.setCircleColor(getResources().getColor(R.color.pie_color_4));
+
+                            //String setter in x-Axis
+                            barChart.getXAxis().setValueFormatter(new com.github.mikephil.charting.formatter.IndexAxisValueFormatter(xAxisValues));
+
+                            BarData data = new BarData(dataSets);
+                            barChart.setData(data);
+                            barChart.animateX(5000);
+                            barChart.invalidate();
+                            barChart.getLegend().setEnabled(false);
+                            barChart.getDescription().setEnabled(false);
+
+                        } else {
+                            Log.w(TAG2, "Error getting documents.", task.getException());
+                        }
+                    }
+
+                });
+
+
+
+        //read data for PieChart
+        db.collection("ICU")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+
+                    private static final String TAG2 = "received data";
+                    ArrayList<PieEntry> pieEntries = new ArrayList<>();
+                    //List<String> patient_cond = new ArrayList<>();
+
+
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+
+                        if (task.isSuccessful()) {
+
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+//                                Log.d(TAG2, document.getId() + " => " + document.getData());
+                                //Put line chart value
+//                                int patient_number = Integer.parseInt((String) document.get("patient_number"));
+
+
+                                /*String SV1 = document.get("patients_condition").toString();
+                                patient_cond.add(SV1);*/
+                                String SV2 = document.get("num").toString();
+                                Float id_num = Float.parseFloat(SV2);
+                                String SV = document.get("patient_number").toString();
+                                Float SensorValue = Float.parseFloat(SV);
+                                pieEntries.add(new PieEntry(SensorValue,id_num));
+
+
+                            }
+
+                            //Initialize pie dataset
+                            PieDataSet pieDataSet = new PieDataSet(pieEntries, "Death|Emergency|Normal|ICU|Moribund");
+                            //set colors
+                            pieDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
+                            //hide draw value
+                            pieDataSet.setDrawValues(true);
+                            //set bar data
+                            pieChart.setData(new PieData(pieDataSet));
+                            //set animation
+                            pieChart.animateXY(5000,5000);
+                            pieChart.getDescription().setEnabled(false);
+
+                        } else {
+                            Log.w(TAG2, "Error getting documents.", task.getException());
+                        }
+                    }
+
+                });
+
 
     }
 
-    public void renderData() {
-        LimitLine llXAxis = new LimitLine(10f, "Index 10");
-        llXAxis.setLineWidth(4f);
-        llXAxis.enableDashedLine(10f, 10f, 0f);
-        llXAxis.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
-        llXAxis.setTextSize(10f);
-
-        XAxis xAxis = mChart.getXAxis();
-        xAxis.enableGridDashedLine(10f, 10f, 0f);
-        xAxis.setAxisMaximum(15f); //10
-        xAxis.setAxisMinimum(0f);
-        xAxis.setDrawLimitLinesBehindData(true);
-
-        LimitLine ll1 = new LimitLine(215f, "Maximum Limit");
-        ll1.setLineWidth(4f);
-        ll1.enableDashedLine(10f, 10f, 0f);
-        ll1.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
-        ll1.setTextSize(10f);
-
-        LimitLine ll2 = new LimitLine(70f, "Minimum Limit");
-        ll2.setLineWidth(4f);
-        ll2.enableDashedLine(10f, 10f, 0f);
-        ll2.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
-        ll2.setTextSize(10f);
-
-        YAxis leftAxis = mChart.getAxisLeft();
-        leftAxis.removeAllLimitLines();
-        leftAxis.addLimitLine(ll1);
-        leftAxis.addLimitLine(ll2);
-        leftAxis.setAxisMaximum(350f);
-        leftAxis.setAxisMinimum(0f);
-        leftAxis.enableGridDashedLine(10f, 10f, 0f);
-        leftAxis.setDrawZeroLine(false);
-        leftAxis.setDrawLimitLinesBehindData(false);
-
-        mChart.getAxisRight().setEnabled(false);
-        setData();
-    }
-
-    private void setData() {
-
-        ArrayList<Entry> values = new ArrayList<>();
-        values.add(new Entry(1, 50));
-        values.add(new Entry(2, 100));
-        values.add(new Entry(3, 80));
-        values.add(new Entry(4, 120));
-        values.add(new Entry(5, 110));
-        values.add(new Entry(7, 150));
-        values.add(new Entry(8, 250));
-        values.add(new Entry(9, 190));
-        values.add(new Entry(10, 50));
-        values.add(new Entry(11, 105));
-        values.add(new Entry(12, 100));
-        values.add(new Entry(13, 80));
-        values.add(new Entry(14, 120));
-        values.add(new Entry(15, 110));
-
-
-        LineDataSet set1;
-        if (mChart.getData() != null &&
-                mChart.getData().getDataSetCount() > 0) {
-            set1 = (LineDataSet) mChart.getData().getDataSetByIndex(0);
-            set1.setValues(values);
-            mChart.getData().notifyDataChanged();
-            mChart.notifyDataSetChanged();
-        } else {
-            set1 = new LineDataSet(values, "Sample Data");
-            set1.setDrawIcons(false);
-            set1.enableDashedLine(10f, 5f, 0f);
-            set1.enableDashedHighlightLine(10f, 5f, 0f);
-            set1.setColor(Color.DKGRAY);
-            set1.setCircleColor(Color.DKGRAY);
-            set1.setLineWidth(1f);
-            set1.setCircleRadius(3f);
-            set1.setDrawCircleHole(false);
-            set1.setValueTextSize(9f);
-            set1.setDrawFilled(true);
-            set1.setFormLineWidth(1f);
-            set1.setFormLineDashEffect(new DashPathEffect(new float[]{10f, 5f}, 0f));
-            set1.setFormSize(15.f);
-
-            if (Utils.getSDKInt() >= 18) {
-                Drawable drawable = ContextCompat.getDrawable(this, R.drawable.fade_blue);
-                set1.setFillDrawable(drawable);
-            } else {
-                set1.setFillColor(Color.DKGRAY);
-            }
-            ArrayList<ILineDataSet> dataSets = new ArrayList<>();
-            dataSets.add(set1);
-            LineData data = new LineData(dataSets);
-            mChart.setData(data);
-        }
-    }
 }

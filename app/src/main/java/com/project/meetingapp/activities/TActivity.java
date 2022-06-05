@@ -4,8 +4,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -23,143 +27,81 @@ import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
 import com.hbb20.CountryCodePicker;
 import com.project.meetingapp.R;
+import com.project.meetingapp.utilities.Constants;
+import com.project.meetingapp.utilities.NotifyUser;
+import com.project.meetingapp.utilities.PreferenceManager;
 
+import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 public class TActivity extends AppCompatActivity {
-    private CountryCodePicker ccp;
-    private EditText Phonetext,Codetext;
-    private Button continueAndNextbtn;
-    String checker="",phoneNumber="";
-    private RelativeLayout relativeLayout;
-    private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
-    private FirebaseAuth mAuth;
-    private String mVerificationId;
-    private PhoneAuthProvider.ForceResendingToken mResndToken;
-    private ProgressDialog loadingbar;
-
+    PreferenceManager preferenceManager;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tactivity);
 
-        mAuth = FirebaseAuth.getInstance();
-        loadingbar = new ProgressDialog(this);
+        preferenceManager = new PreferenceManager(getApplicationContext());
+        addToSms("Msg");
 
-        ccp = findViewById(R.id.ccp);
-        Phonetext = findViewById(R.id.phoneText);
-        Codetext = findViewById(R.id.codeText);
-        continueAndNextbtn = findViewById(R.id.continueNextButton);
-        relativeLayout = findViewById(R.id.phoneAuth);
-
-        ccp.registerCarrierNumberEditText(Phonetext);
-
-        continueAndNextbtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(continueAndNextbtn.getText().equals("Submit")||checker.equals("Code Sent")){
-                    String verificaticode = Codetext.getText().toString();
-                    if(verificaticode.equals("")){
-                        Toast.makeText(TActivity.this,"Please write verification code", Toast.LENGTH_LONG).show();
-                    }
-                    else{
-                        loadingbar.setTitle("Code Verification");
-                        loadingbar.setMessage("Please Wait,While we are Varyfing your code");
-                        loadingbar.setCanceledOnTouchOutside(false);
-                        loadingbar.show();
-
-                        PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationId,verificaticode);
-                        signInWithPhoneAuthCredential(credential);
-                    }
-                }
-                else{
-                    //phoneNumber=ccp.getFullNumberWithPlus();
-                    phoneNumber= "+8801521506095";
-                    if(!phoneNumber.equals("")){
-                        loadingbar.setTitle("Phone Number Verification");
-                        loadingbar.setMessage("Please Wait,While we are Varyfing your phone number");
-                        loadingbar.setCanceledOnTouchOutside(false);
-                        loadingbar.show();
-
-                        PhoneAuthProvider.getInstance().verifyPhoneNumber(
-                                phoneNumber,        // Phone number to verify
-                                60,                 // Timeout duration
-                                TimeUnit.SECONDS,   // Unit of timeout
-                                TActivity.this,               // Activity (for callback binding)
-                                mCallbacks);        // OnVerificationStateChangedCallbacks
-                    }
-                    else{
-                        Toast.makeText(TActivity.this,"Please enter valid phone number",Toast.LENGTH_LONG).show();
-                    }
-                }
-            }
-        });
-
-        mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-            @Override
-            public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
-                signInWithPhoneAuthCredential(phoneAuthCredential);
-            }
-
-            @Override
-            public void onVerificationFailed(@NonNull FirebaseException e) {
-                Toast.makeText(TActivity.this,"Invalid phone number.....",Toast.LENGTH_LONG).show();
-                loadingbar.dismiss();
-                relativeLayout.setVisibility(View.VISIBLE);
-                continueAndNextbtn.setText("Continue");
-                Codetext.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onCodeSent(@NonNull String s, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
-                super.onCodeSent(s, forceResendingToken);
-                relativeLayout.setVisibility(View.GONE);
-                checker = "Code Sent";
-                continueAndNextbtn.setText("Submit");
-                Codetext.setVisibility(View.VISIBLE);
-
-                mVerificationId=s;
-                mResndToken=forceResendingToken;
-
-                loadingbar.dismiss();
-                Toast.makeText(TActivity.this,"Code has been sent,Please check...",Toast.LENGTH_LONG).show();
-
-            }
-        };
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-       /* FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if(firebaseUser!=null){
-            Intent homeintent = new Intent(TActivity.this,MainActivity.class);
-            startActivity(homeintent);
-            finish();
-        }*/
+    public void addToSms(String messageText) {
+        String name = preferenceManager.getString(Constants.KEY_FULL_NAME);
+        String number = preferenceManager.getString(Constants.KEY_MOBILE_NUM);
+        String message = messageText;
+        String messageDate = Integer.toString(5) + "/" + Integer.toString(5) + "/" + Integer.toString(2022); //Convert integers to string
+        String messageTime = String.format("%02d:%02d", 9, 38); // Convert to String and format hours and minutes
+        String messageStatus = "Pending";
+
+        // Start multi-thread to insert sms to database and start alarm manager
+        ScheduleSmsAsyncTask task = new ScheduleSmsAsyncTask();
+        task.execute(name, number, messageDate, messageTime, message, messageStatus);
     }
 
-    private void signInWithPhoneAuthCredential(PhoneAuthCredential credential) {
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
+    private class ScheduleSmsAsyncTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... string) {
+            String result = "SMS Successfully Scheduled";
+            try {
+                // Construct a Sms object and pass it to the helper for database insertion
+                //int SmsID = smsDatabaseHelper.addSms(new Sms(string[0], string[1], string[2], string[3], string[4], string[5]));
 
-                            loadingbar.dismiss();
-                            Toast.makeText(TActivity.this,"Congratulations,you are login successfully",Toast.LENGTH_LONG).show();
-                            sendUserToMainActivity();
-                        } else {
-                            loadingbar.dismiss();
-                            String e = task.getException().toString();
-                            Toast.makeText(TActivity.this,"Error: "+e,Toast.LENGTH_LONG).show();
-                        }
-                    }
-                });
-    }
-    private void sendUserToMainActivity(){
-        Intent intent = new Intent(TActivity.this,MainActivity.class);
-        startActivity(intent);
-        finish();
+                // Create calendar with selected date and time
+                Calendar c = Calendar.getInstance();
+               /* c.set(Calendar.YEAR, setYear);
+                c.set(Calendar.MONTH, setMonth);
+                c.set(Calendar.DAY_OF_MONTH, setDay);
+                c.set(Calendar.HOUR_OF_DAY, setHour);
+                c.set(Calendar.MINUTE, setMinute);
+                c.set(Calendar.SECOND, 0);*/
+
+                // Create alarm manager
+                AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+                // Pass SmsID to AlarmReceiver class
+                Intent intent = new Intent(getApplicationContext(), NotifyUser.class);
+                intent.putExtra("name", "Rofiqul");
+                intent.putExtra("date", "21:56:00");
+
+                //Set SmsID as unique id, Set time to calender, Start alarm
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(),1, intent, 0);
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, Calendar.getInstance().getTimeInMillis()+(60*1000), pendingIntent);
+            } catch (Exception e) {
+                e.printStackTrace();
+                result = "SMS failed to schedule";
+            }
+            return result;
+
+        }
+
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            // Display result message
+            Toast.makeText(TActivity.this, result, Toast.LENGTH_SHORT).show();
+
+            // Clear Sms Fields
+            //resetInput();
+        }
     }
 }

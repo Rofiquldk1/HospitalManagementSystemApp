@@ -77,10 +77,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         TextView drawerUserTV = (TextView) headerview.findViewById(R.id.drawer_userName);
 
         Log.d("user","name1: "+drawerUserName+" "+ drawerStatus) ;
-        drawerUserTV.setText("Rofiqul Islam");
+        drawerUserTV.setText(preferenceManager.getString(Constants.KEY_FULL_NAME));
+        /*drawerUserTV.setText("Rofiqul Islam");
         Picasso.get().load("https://m.cricbuzz.com/a/img/v1/192x192/i1/c170912/shakib-al-hasan.jpg")
                 .placeholder(R.drawable.profile_image)
-                .into(drawerImage);
+                .into(drawerImage);*/
         /*headerview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -173,12 +174,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 listCountry.add("Grant Appointment");
                 listCountry.add("Assign Staff");
                 listCountry.add("View All Remaining Bills");
+                listCountry.add("Add User");
+                listCountry.add("Edit User Info");
                 listCountry.add("Delete User");
 
                 listFlag.add(R.drawable.personal_information);
                 listFlag.add(R.drawable.appointment);
                 listFlag.add(R.drawable.assign_staff);
                 listFlag.add(R.drawable.online_payment_96);
+                listFlag.add(R.drawable.add_user);
+                listFlag.add(R.drawable.edit_profile);
                 listFlag.add(R.drawable.delete);
                 break;
         }
@@ -199,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     startActivity(callIntent);
                 }
                 else if(position == 2)
-                    startActivity(new Intent(this, PersonalInfoActivity.class));
+                    startActivity(new Intent(this, BookAppointmentActivity.class));
                 else if(position == 3)
                     startActivity(new Intent(this, PersonalInfoActivity.class));
                 else if(position == 4)
@@ -244,7 +249,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     Intent i = new Intent(MainActivity.this, RemainingBillsActivity.class);
                     startActivity(i);
                 }
-                else if(position == 4) {
+                else if(position == 4)
+                    startActivity(new Intent(this, AddUserActivity.class));
+                else if(position == 5)
+                    startActivity(new Intent(this, UpdateUserInfoActivity.class));
+                else if(position == 6) {
                     Intent i = new Intent(MainActivity.this, DeleteUserActivity.class);
                     startActivity(i);
                 }

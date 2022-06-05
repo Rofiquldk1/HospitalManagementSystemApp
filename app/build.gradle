@@ -74,7 +74,7 @@ dependencies {
     implementation 'com.hbb20:ccp:2.1.9'
     implementation 'com.google.firebase:firebase-auth:21.0.5'
 
-
+    implementation 'com.google.firebase:firebase-database:16.0.4'
     implementation "androidx.drawerlayout:drawerlayout:1.1.1"
     implementation 'androidx.vectordrawable:vectordrawable:1.1.0'
     implementation 'androidx.navigation:navigation-fragment:2.3.5'
