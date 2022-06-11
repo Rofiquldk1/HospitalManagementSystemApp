@@ -14,6 +14,7 @@
         <entry key="..\:/MeetingApp/app/src/main/res/drawable/ic_date_range_black_24dp.xml" value="0.2203125" />
         <entry key="..\:/MeetingApp/app/src/main/res/drawable/rounded_edge.xml" value="0.2203125" />
         <entry key="..\:/MeetingApp/app/src/main/res/layout/activity_add_user.xml" value="0.20416666666666666" />
+        <entry key="..\:/MeetingApp/app/src/main/res/layout/activity_assign_staff.xml" value="0.20416666666666666" />
         <entry key="..\:/MeetingApp/app/src/main/res/layout/activity_book_appointment.xml" value="0.1" />
         <entry key="..\:/MeetingApp/app/src/main/res/layout/activity_delete_user.xml" value="0.16530797101449277" />
         <entry key="..\:/MeetingApp/app/src/main/res/layout/activity_doctor.xml" value="0.20416666666666666" />
@@ -39,6 +40,7 @@
         <entry key="..\:/MeetingApp/app/src/main/res/layout/drawer_header.xml" value="0.19610507246376813" />
         <entry key="..\:/MeetingApp/app/src/main/res/layout/grant_appoinment_cv.xml" value="0.25" />
         <entry key="..\:/MeetingApp/app/src/main/res/layout/gridview_row.xml" value="0.25" />
+        <entry key="..\:/MeetingApp/app/src/main/res/layout/item_container_user.xml" value="0.20416666666666666" />
         <entry key="..\:/MeetingApp/app/src/main/res/layout/items.xml" value="0.20416666666666666" />
         <entry key="..\:/MeetingApp/app/src/main/res/layout/personal_info.xml" value="0.25" />
         <entry key="..\:/MeetingApp/app/src/main/res/layout/remaing_bills.xml" value="0.17527173913043478" />
